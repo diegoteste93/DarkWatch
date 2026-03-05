@@ -83,13 +83,21 @@ Se aparecer `ModuleNotFoundError: No module named "app"` nos logs do `alembic`:
 
 ```bash
 docker compose down
-docker compose up -d --build
+docker compose build --no-cache api
+docker compose up -d
 ```
 
 Para seguir logs, o comando correto é:
 
 ```bash
 docker logs -f darkwatch-api-1
+```
+
+Se ainda persistir, confirme se o container está com a imagem nova:
+
+```bash
+docker compose ps
+docker compose images
 ```
 
 ## Endpoints implementados
