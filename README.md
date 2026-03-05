@@ -32,6 +32,8 @@ docker compose run --rm api python -m app.bootstrap --email admin@darkwatch.loca
 ## 4) Fluxo básico de uso
 
 ### Login
+> `admin@darkwatch.local` é aceito no login (ambiente local/interno).
+
 ```bash
 curl -X POST http://localhost:9003/auth/login \
   -H 'Content-Type: application/json' \

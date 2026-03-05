@@ -1,10 +1,21 @@
 from datetime import datetime
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    email: str
     password: str
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, value: str) -> str:
+        email = value.strip().lower()
+        if "@" not in email:
+            raise ValueError("invalid email format")
+        local_part, domain_part = email.rsplit("@", 1)
+        if not local_part or not domain_part:
+            raise ValueError("invalid email format")
+        return email
 
 
 class TokenResponse(BaseModel):
