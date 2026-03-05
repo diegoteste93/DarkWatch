@@ -100,6 +100,16 @@ docker compose ps
 docker compose images
 ```
 
+
+Se aparecer erro de `bcrypt`/`passlib` ao criar admin (ex.: `error reading bcrypt version`),
+reconstrua a imagem para aplicar a versão fixada de dependências:
+
+```bash
+docker compose down
+docker compose build --no-cache api
+docker compose up -d
+```
+
 ## Endpoints implementados
 - `POST /auth/login`
 - `POST /tenants` (admin)
