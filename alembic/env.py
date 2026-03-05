@@ -1,9 +1,16 @@
 from logging.config import fileConfig
+import sys
+from pathlib import Path
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
+
+ROOT_DIR = Path(__file__).resolve().parents[1]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 from app.core.config import settings
 from app.core.database import Base
 from app import models  # noqa: F401
@@ -44,5 +51,7 @@ def run_migrations_online() -> None:
             context.run_migrations()
 
 
-run_migrations_offline()
-run_migrations_online()
+if context.is_offline_mode():
+    run_migrations_offline()
+else:
+    run_migrations_online()

@@ -76,6 +76,22 @@ curl "http://localhost:9003/tenants/1/findings?since=2026-01-01T00:00:00" \
   -H "Authorization: Bearer <TOKEN>"
 ```
 
+
+## Troubleshooting rápido
+
+Se aparecer `ModuleNotFoundError: No module named "app"` nos logs do `alembic`:
+
+```bash
+docker compose down
+docker compose up -d --build
+```
+
+Para seguir logs, o comando correto é:
+
+```bash
+docker logs -f darkwatch-api-1
+```
+
 ## Endpoints implementados
 - `POST /auth/login`
 - `POST /tenants` (admin)
