@@ -15,7 +15,7 @@ cp .env.example .env
 docker compose up --build
 ```
 
-API: `http://localhost:8000`
+API: `http://localhost:9003`
 
 ## 2) Rodar migrations manualmente (opcional)
 
@@ -33,14 +33,14 @@ docker compose run --rm api python -m app.bootstrap --email admin@darkwatch.loca
 
 ### Login
 ```bash
-curl -X POST http://localhost:8000/auth/login \
+curl -X POST http://localhost:9003/auth/login \
   -H 'Content-Type: application/json' \
   -d '{"email":"admin@darkwatch.local","password":"Admin123!"}'
 ```
 
 ### Criar tenant (admin)
 ```bash
-curl -X POST http://localhost:8000/tenants \
+curl -X POST http://localhost:9003/tenants \
   -H "Authorization: Bearer <TOKEN>" \
   -H 'Content-Type: application/json' \
   -d '{"name":"Acme"}'
@@ -48,17 +48,17 @@ curl -X POST http://localhost:8000/tenants \
 
 ### Cadastrar targets
 ```bash
-curl -X POST http://localhost:8000/tenants/1/targets \
+curl -X POST http://localhost:9003/tenants/1/targets \
   -H "Authorization: Bearer <TOKEN>" \
   -H 'Content-Type: application/json' \
   -d '{"type":"domain","value":"acme.com","active":true}'
 
-curl -X POST http://localhost:8000/tenants/1/targets \
+curl -X POST http://localhost:9003/tenants/1/targets \
   -H "Authorization: Bearer <TOKEN>" \
   -H 'Content-Type: application/json' \
   -d '{"type":"email","value":"security@acme.com","active":true}'
 
-curl -X POST http://localhost:8000/tenants/1/targets \
+curl -X POST http://localhost:9003/tenants/1/targets \
   -H "Authorization: Bearer <TOKEN>" \
   -H 'Content-Type: application/json' \
   -d '{"type":"keyword","value":"acme","active":true}'
@@ -66,13 +66,13 @@ curl -X POST http://localhost:8000/tenants/1/targets \
 
 ### Rodar scan imediato
 ```bash
-curl -X POST http://localhost:8000/tenants/1/scan \
+curl -X POST http://localhost:9003/tenants/1/scan \
   -H "Authorization: Bearer <TOKEN>"
 ```
 
 ### Listar findings
 ```bash
-curl "http://localhost:8000/tenants/1/findings?since=2026-01-01T00:00:00" \
+curl "http://localhost:9003/tenants/1/findings?since=2026-01-01T00:00:00" \
   -H "Authorization: Bearer <TOKEN>"
 ```
 
