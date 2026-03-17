@@ -34,6 +34,25 @@ def upgrade() -> None:
 
     op.add_column("alerts", sa.Column("error", sa.String(length=255), nullable=True))
 
+    # Normalize existing target values and deduplicate before enforcing uniqueness.
+    op.execute("UPDATE targets SET value = lower(trim(value))")
+    op.execute(
+        """
+        WITH ranked AS (
+            SELECT id,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY tenant_id, type, value
+                       ORDER BY id ASC
+                   ) AS rn
+            FROM targets
+        )
+        DELETE FROM targets t
+        USING ranked r
+        WHERE t.id = r.id
+          AND r.rn > 1
+        """
+    )
+
     op.create_unique_constraint("uq_target_tenant_type_value", "targets", ["tenant_id", "type", "value"])
 
 

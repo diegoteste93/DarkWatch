@@ -133,3 +133,17 @@ docker compose up -d --build
 
 Frontend: `http://localhost:9004`
 API: `http://localhost:9003`
+
+
+### Erro de migration por duplicidade de targets
+
+Se o upgrade falhar com `uq_target_tenant_type_value` (duplicados já existentes),
+a migration `0002_professional_hardening` agora normaliza (`lower(trim(value))`)
+e remove duplicados por `(tenant_id, type, value)` antes de criar a constraint.
+
+Rode novamente:
+
+```bash
+docker compose run --rm api python -m alembic upgrade head
+```
+
