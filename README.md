@@ -1,132 +1,104 @@
-# DarkWatch (MVP SaaS)
+# DarkWatch (MVP SaaS - Hardened API)
 
-MVP multi-tenant para monitoramento de vazamentos com **LeakRadar API** usando:
+Backend multi-tenant para monitoramento de vazamentos com LeakRadar.
+
+## Stack
 - FastAPI
 - PostgreSQL
 - SQLAlchemy + Alembic
-- APScheduler (scan a cada 6h dentro da API)
+- APScheduler
 - Docker Compose
 
-## 1) Subir ambiente
-
+## Subir ambiente
 ```bash
 cp .env.example .env
-# edite LEAKRADAR_API_KEY e JWT_SECRET_KEY
-docker compose up --build
+docker compose up -d --build
 ```
 
-API: `http://localhost:9003`
+API: `http://localhost:9003`  
+Postgres host: `localhost:5433`
 
-## 2) Rodar migrations manualmente (opcional)
-
-```bash
-docker compose run --rm api alembic upgrade head
-```
-
-## 3) Criar admin
-
+## Bootstrap admin
 ```bash
 docker compose run --rm api python -m app.bootstrap --email admin@darkwatch.local --password Admin123!
 ```
 
-## 4) Fluxo básico de uso
+## Contratos HTTP
 
-### Login
-> `admin@darkwatch.local` é aceito no login (ambiente local/interno).
-
-```bash
-curl -X POST http://localhost:9003/auth/login \
-  -H 'Content-Type: application/json' \
-  -d '{"email":"admin@darkwatch.local","password":"Admin123!"}'
+### Sucesso padrão
+```json
+{
+  "data": {},
+  "message": "Success"
+}
 ```
 
-### Criar tenant (admin)
-```bash
-curl -X POST http://localhost:9003/tenants \
-  -H "Authorization: Bearer <TOKEN>" \
-  -H 'Content-Type: application/json' \
-  -d '{"name":"Acme"}'
+### Paginação padrão
+```json
+{
+  "items": [],
+  "total": 100,
+  "page": 1,
+  "page_size": 50,
+  "pages": 2
+}
 ```
 
-### Cadastrar targets
-```bash
-curl -X POST http://localhost:9003/tenants/1/targets \
-  -H "Authorization: Bearer <TOKEN>" \
-  -H 'Content-Type: application/json' \
-  -d '{"type":"domain","value":"acme.com","active":true}'
-
-curl -X POST http://localhost:9003/tenants/1/targets \
-  -H "Authorization: Bearer <TOKEN>" \
-  -H 'Content-Type: application/json' \
-  -d '{"type":"email","value":"security@acme.com","active":true}'
-
-curl -X POST http://localhost:9003/tenants/1/targets \
-  -H "Authorization: Bearer <TOKEN>" \
-  -H 'Content-Type: application/json' \
-  -d '{"type":"keyword","value":"acme","active":true}'
+### Erro padrão
+```json
+{
+  "detail": "Mensagem clara",
+  "code": "ERROR_CODE",
+  "status": 409
+}
 ```
 
-### Rodar scan imediato
-```bash
-curl -X POST http://localhost:9003/tenants/1/scan \
-  -H "Authorization: Bearer <TOKEN>"
-```
+## Roles (RBAC)
+- `ADMIN`: acesso global.
+- `CLIENT`: acesso apenas ao próprio tenant.
 
-### Listar findings
-```bash
-curl "http://localhost:9003/tenants/1/findings?since=2026-01-01T00:00:00" \
-  -H "Authorization: Bearer <TOKEN>"
-```
+## Endpoints principais
 
-
-## Troubleshooting rápido
-
-Se aparecer `ModuleNotFoundError: No module named "app"` nos logs do `alembic`:
-
-```bash
-docker compose down
-docker compose build --no-cache api
-docker compose up -d
-```
-
-Para seguir logs, o comando correto é:
-
-```bash
-docker logs -f darkwatch-api-1
-```
-
-Se ainda persistir, confirme se o container está com a imagem nova:
-
-```bash
-docker compose ps
-docker compose images
-```
-
-
-Se aparecer erro de `bcrypt`/`passlib` ao criar admin (ex.: `error reading bcrypt version`),
-reconstrua a imagem para aplicar a versão fixada de dependências:
-
-```bash
-docker compose down
-docker compose build --no-cache api
-docker compose up -d
-```
-
-## Endpoints implementados
+### Auth
 - `POST /auth/login`
-- `POST /tenants` (admin)
-- `POST /tenants/{tenant_id}/targets`
-- `GET /tenants/{tenant_id}/findings?since=...`
-- `POST /tenants/{tenant_id}/scan`
-- `GET /health`
+- `GET /auth/me`
 
-## LeakRadar client
-Arquivo: `app/leakradar_client.py`
-- `search_email(email, page=1, page_size=100, auto_unlock=False)` -> `POST /search/email`
-- `search_domain(domain, category, page=1, page_size=100, auto_unlock=False)` -> `GET /search/domain/{domain}/{category}`
-- `search_dark_web(query, page=1, page_size=25, sources=None, date_from=None, date_to=None)` -> `POST /search/dark-web`
+### Tenants
+- `GET /tenants`
+- `POST /tenants`
+- `GET /tenants/{id}`
+- `PATCH /tenants/{id}`
 
-## Observações
-- Deduplicação: `unique(tenant_id, external_id)`.
-- `external_id`: usa `id` do provider; fallback para hash SHA-256 de campos principais.
-- Scan agendado automático a cada 6h por tenant.
+### Targets
+- `GET /tenants/{id}/targets`
+- `POST /tenants/{id}/targets`
+- `PATCH /tenants/{id}/targets/{target_id}`
+
+### Findings
+- `GET /tenants/{id}/findings` (paginação + filtros)
+
+### Runs / Scan
+- `GET /tenants/{id}/runs`
+- `GET /tenants/{id}/runs/{run_id}`
+- `POST /tenants/{id}/scan`
+
+### Settings / SMTP
+- `GET /tenants/{id}/settings`
+- `PATCH /tenants/{id}/settings`
+- `POST /tenants/{id}/settings/test-email`
+
+### Dashboard
+- `GET /admin/dashboard/overview`
+- `GET /tenants/{id}/dashboard/overview`
+
+## Status de scan
+- `pending`
+- `running`
+- `completed`
+- `partial_failed`
+- `failed`
+
+## Testes
+```bash
+pytest -q
+```

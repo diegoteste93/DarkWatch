@@ -1,3 +1,4 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -19,6 +20,12 @@ class Settings(BaseSettings):
     smtp_password: str | None = None
     smtp_from: str = "alerts@darkwatch.local"
     smtp_starttls: bool = True
+    cors_origins: str = "*"
+
+    @field_validator("cors_origins")
+    @classmethod
+    def normalize_cors(cls, value: str) -> str:
+        return value.strip()
 
 
 settings = Settings()

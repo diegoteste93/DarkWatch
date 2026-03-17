@@ -1,19 +1,27 @@
 import argparse
-from sqlalchemy import select
+import subprocess
+import sys
+from sqlalchemy import func, select
 
 from app.core.database import SessionLocal
 from app.core.security import get_password_hash
 from app.models import User
 
 
+def ensure_schema() -> None:
+    subprocess.run([sys.executable, "-m", "alembic", "upgrade", "head"], check=True)
+
+
 def create_admin(email: str, password: str):
+    ensure_schema()
     db = SessionLocal()
     try:
-        existing = db.scalar(select(User).where(User.email == email))
+        normalized_email = email.strip().lower()
+        existing = db.scalar(select(User).where(func.lower(User.email) == normalized_email))
         if existing:
             print("Admin already exists")
             return
-        admin = User(email=email, hashed_password=get_password_hash(password), role="admin", tenant_id=None)
+        admin = User(email=normalized_email, hashed_password=get_password_hash(password), role="ADMIN", tenant_id=None)
         db.add(admin)
         db.commit()
         print("Admin created")
