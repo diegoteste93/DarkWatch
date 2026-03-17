@@ -23,5 +23,19 @@ services:
       - "9003:9003"
     command: bash -c "export PYTHONPATH=/app && python -m alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 9003"
 
+  frontend:
+    image: node:20-alpine
+    working_dir: /frontend
+    volumes:
+      - ./frontend:/frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:9003
+    ports:
+      - "9004:9004"
+    command: sh -c "npm install && npm run dev"
+    depends_on:
+      - api
+
+
 volumes:
   pgdata:

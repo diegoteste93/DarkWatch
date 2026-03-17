@@ -102,3 +102,34 @@ docker compose run --rm api python -m app.bootstrap --email admin@darkwatch.loca
 ```bash
 pytest -q
 ```
+
+## Frontend (Next.js SaaS UI)
+
+O frontend completo foi adicionado em `frontend/` com:
+- Next.js App Router + TypeScript
+- TailwindCSS (dark mode padrão)
+- componentes estilo shadcn/ui
+- TanStack Query
+- Axios com interceptors JWT
+- Zustand (auth state)
+- Recharts
+
+### Rotas
+- `/login`
+- `/admin` (console ADMIN)
+- `/dashboard` (portal CLIENT)
+
+### Executar frontend
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Ou via compose (API + frontend):
+```bash
+docker compose up -d --build
+```
+
+Frontend: `http://localhost:9004`
+API: `http://localhost:9003`
